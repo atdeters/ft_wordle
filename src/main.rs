@@ -9,23 +9,27 @@ fn main() {
 
     let word_to_find: &'static str = "harsh";
 
-    buffer[1][2] = 'a';
+    buffer[1][1] = 'a';
+    buffer[1][2] = 'o';
 
-    for i in 0..5 {
-
-        // Check current word
-        for j in 0..4 {
-            // TODO: 1. Check if the character matches the word_to_find
-                // if yes: print green
-                // if no:
-                    // if does exist: print yellow
-                    // else: print gray
-            if word_to_find.chars().nth(j) == Some(buffer[i][j]) {
-                print!("\x1b[1;32m");
+    let mut char_nb: usize;
+    for elem in buffer {
+        // Check if elem is part of the wordlist
+        let current_word: String = elem.iter().collect();
+        char_nb = 0;
+        for character in elem {
+            // Character in right position
+            if word_to_find.chars().nth(char_nb) == Some(character) {
+                print!("\x1b[1;38;5;0;48;2;128;239;128m");
             }
-            print!("{}", buffer[i][j]);
+            // Character in word but wrong position
+            else if character == 'o' {
+                print!("\x1b[1;38;5;0;48;2;255;206;27m");
+            }
+            print!("{}", character);
             print!("\x1b[0m");
             print!(" ");
+            char_nb += 1;
         }
         println!("");
     }
