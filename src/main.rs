@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use colored::Colorize;
 use console::Term;
 use crossterm::{cursor, execute};
+use rand::{Rng, rng};
 
 #[derive(PartialEq)]
 #[derive(Clone)]
@@ -12,7 +13,6 @@ enum CharStatus {
     WrongPos = 1,
     RightPos = 2
 }
-use rand::{Rng, rng};
 
 fn print_gamestate(buffer: [[(char, CharStatus); 5]; 6]) -> ()
 {
