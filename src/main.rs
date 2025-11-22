@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use colored::Colorize;
 use console::Term;
+use rand::{Rng, rng};
 
 fn main() {
 	// Get binary and store the contents from the text file into a string
@@ -12,8 +13,13 @@ fn main() {
     let mut buffer: [[char; 5]; 6] = [['_'; 5]; 6];
 
     // TODO: Get word of the day aka replace "harsh" with random word of dict
-    let word_to_find: &str = "harsh";
-
+	// let mut rng =  
+	let index = rng().random_range(0..dict.len());
+    let word_to_find: &str = dict
+								.iter()
+								.nth(index)
+								.unwrap();
+	println!("{word_to_find}");
     // Create a counter for each char in the word_to_find
     let mut char_counter_wtf: [u8; 26] = [0; 26];
     for char in word_to_find.chars() {
