@@ -1,5 +1,6 @@
 // use std::collections::HashSet;
 use std::collections::HashSet;
+use colored::Colorize;
 
 fn main() {
 	// Get binary and store the contents from the text file into a string
@@ -31,7 +32,7 @@ fn main() {
         let current_word: String = elem.iter().collect();
         let curr: &str = current_word.as_str();
         if !dict.contains(curr) {
-            println!("Word not in wordlist: {}", current_word);
+            println!("Word not in wordlist: {current_word}");
             continue;
         }
 
@@ -41,15 +42,24 @@ fn main() {
         for character in elem {
             // Character in right position
             if word_to_find.chars().nth(char_nb) == Some(character) {
-                print!("\x1b[1;38;5;0;48;2;128;239;128m");
+                print!("{}", character
+                                .to_string()
+                                .bold()
+                                .black()
+                                .on_truecolor(128, 239, 128));
             }
             // Character in word but wrong position
             // TODO: Make this work with char_coutner_curr
             else if character == 'o' {
-                print!("\x1b[1;38;5;0;48;2;255;206;27m");
+                print!("{}", character
+                                .to_string()
+                                .bold()
+                                .black()
+                                .on_truecolor(255, 206, 27));
             }
-            print!("{}", character);
-            print!("\x1b[0m");
+            else {
+                print!("{character}");
+            }
             print!(" ");
             char_nb += 1;
         }
