@@ -124,10 +124,10 @@ fn main() {
             let current_word: &str = tmp_word.as_str();
 
             if idx != 5 {
-                println!("Not enough letters");
+                eprintln!("Not enough letters");
             }
             else if !dict.contains(current_word) {
-                println!("Word not in wordlist: {current_word}");
+                eprintln!("Word not in wordlist: {current_word}");
             }
             else {
                 break;
