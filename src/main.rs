@@ -20,8 +20,8 @@ fn main() {
         char_counter_wtf[char as usize - 'a' as usize] += 1;
     }
 
-    buffer[1][0] = 'h';
-    buffer[1][1] = 'e';
+    buffer[1][0] = 'a';
+    buffer[1][1] = 'w';
     buffer[1][2] = 'a';
     buffer[1][3] = 'r';
     buffer[1][4] = 'd';
@@ -38,7 +38,7 @@ fn main() {
 
         // Reveal last word
         char_nb = 0;
-        let mut _char_counter_curr = char_counter_wtf;
+        let mut char_counter_curr = char_counter_wtf;
         for character in elem {
             // Character in right position
             if word_to_find.chars().nth(char_nb) == Some(character) {
@@ -50,12 +50,13 @@ fn main() {
             }
             // Character in word but wrong position
             // TODO: Make this work with char_coutner_curr
-            else if character == 'o' {
+            else if char_counter_curr[character as usize - 'a' as usize] != 0 {
                 print!("{}", character
                                 .to_string()
                                 .bold()
                                 .black()
                                 .on_truecolor(255, 206, 27));
+                char_counter_curr[character as usize - 'a' as usize] -= 1;
             }
             else {
                 print!("{character}");
