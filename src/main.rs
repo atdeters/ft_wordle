@@ -162,10 +162,12 @@ fn main() {
         if correct_chars == 5 {
             print_gamestate(buffer);
             println!("Won game");
+            let _ = execute!(term, cursor::Show);
             std::process::exit(0);
         }
         println!("");
     }
     print_gamestate(buffer);
     println!("You lose. The word was \"{}\"", word_to_find);
+    let _ = execute!(term, cursor::Show);
 }
