@@ -3,6 +3,7 @@ use colored::Colorize;
 use console::Term;
 use crossterm::{cursor, execute};
 use ::rand::{Rng, rng};
+use macroquad::prelude::*;
 
 #[derive(PartialEq)]
 #[derive(Clone)]
@@ -11,7 +12,8 @@ use ::rand::{Rng, rng};
 enum CharStatus {
     NotInWord = 0,
     WrongPos = 1,
-    RightPos = 2
+    RightPos = 2,
+    NotRevealed = 3
 }
 
 fn print_gamestate(buffer: [[(char, CharStatus); 5]; 6]) -> ()
@@ -43,7 +45,123 @@ fn print_gamestate(buffer: [[(char, CharStatus); 5]; 6]) -> ()
     }
 }
 
-fn main() {
+fn print_gamestate_win(buffer: [[(char, CharStatus); 5]; 6]) -> ()
+{
+    // === COLORS ===
+    const COL_BACK: Color = Color::new(18.0 / 255.0, 18.0 / 255.0, 19.0 / 255.0, 1.00);
+    const COL_RIGHT_POS: Color = Color::new(83.0 / 255.0, 141.0 / 255.0, 78.0 / 255.0, 1.0);
+    const COL_WRONG_POS: Color = Color::new(181.0 / 255.0, 160.0 / 255.0, 59.0 / 255.0, 1.0);
+    // const COL_UNUSED = Color::new(129.0 / 255.0, 131.0 / 255.0, 132.0 / 255.0, 1.0);
+    const COL_GRID: Color = Color::new(58.0 / 255.0, 58.0 / 255.0, 60.0 / 255.0, 1.00);
+
+    // === SIZES ===
+    const BLOCK_SIZE: f32 = 60.0;
+    const GRID_OFFSET_Y: f32 = 50.0;
+    const GRID_THICC: f32 = 4.0;
+    const GRID_GAP: f32 = 5.0;
+    const FONT_SIZE: u16 = 80;
+
+    clear_background(COL_BACK);
+    // Draw complete grid
+    for i in 0..6 {
+        for j in -2isize..3 {
+            let mut curr_char: String = buffer[i][(j + 2) as usize].0.to_string();
+            let mut status: CharStatus = buffer[i][(j+2) as usize].1;
+            // Case: empty (aka '_') || not yet revealed
+            if curr_char == "_" || status == CharStatus::NotRevealed {
+                draw_rectangle_lines(screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP),
+                                    GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP),
+                                    BLOCK_SIZE,
+                                    BLOCK_SIZE,
+                                    GRID_THICC,
+                                    COL_GRID);
+                if (curr_char != "_") {
+                    let center = get_text_center(&curr_char, Option::None, FONT_SIZE, 1.0, 0.0);
+                    draw_text(&curr_char,
+                        (screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.x,
+                        (GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.y,
+                                FONT_SIZE.into(),
+                                WHITE);
+                }
+            }
+            // Case: WrongPos
+            else if status == CharStatus::WrongPos {
+                draw_rectangle(screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP),
+                                    GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP),
+                                    BLOCK_SIZE,
+                                    BLOCK_SIZE,
+                                    COL_WRONG_POS);
+                let center = get_text_center(&curr_char, Option::None, FONT_SIZE, 1.0, 0.0);
+                draw_text(&curr_char,
+                    (screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.x,
+                    (GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.y,
+                            FONT_SIZE.into(),
+                            WHITE);
+            }
+            // Case: RightPos
+            else if status == CharStatus::RightPos {
+                draw_rectangle(screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP),
+                                    GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP),
+                                    BLOCK_SIZE,
+                                    BLOCK_SIZE,
+                                    COL_RIGHT_POS);
+                let center = get_text_center(&curr_char, Option::None, FONT_SIZE, 1.0, 0.0);
+                draw_text(&curr_char,
+                    (screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.x,
+                    (GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.y,
+                            FONT_SIZE.into(),
+                            WHITE);
+            }
+            // Case: Not in word
+            else {
+                draw_rectangle(screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP),
+                                    GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP),
+                                    BLOCK_SIZE,
+                                    BLOCK_SIZE,
+                                    COL_GRID);
+                let center = get_text_center(&curr_char, Option::None, FONT_SIZE, 1.0, 0.0);
+                draw_text(&curr_char,
+                    (screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.x,
+                    (GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.y,
+                            FONT_SIZE.into(),
+                            WHITE);
+            }
+        }
+    }
+}
+
+
+
+#[macroquad::main("ft_wordle")]
+async fn main() {
+
+    // Main game loop
+    loop {
+        let mut buffer: [[(char, CharStatus); 5]; 6] = [[('_', CharStatus::NotRevealed); 5]; 6];
+        buffer[1][0].0 = 'a';
+        buffer[1][0].1 = CharStatus::RightPos;
+        buffer[2][0].0 = 'b';
+        buffer[2][0].1 = CharStatus::WrongPos;
+        buffer[3][0].0 = 'c';
+        buffer[3][0].1 = CharStatus::NotInWord;
+        buffer[4][0].0 = 'd';
+
+        print_gamestate_win(buffer);
+        next_frame().await;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
 	// Get binary and store the contents from the text file into a string
 	let words: &'static str = include_str!("wordlists/words.txt");
 	let tmp_dict: HashSet<&str> = words.lines().collect();
@@ -179,4 +297,5 @@ fn main() {
     print_gamestate(buffer);
     println!("You lose. The word was \"{}\"", word_to_find);
     let _ = execute!(term, cursor::Show);
+    */
 }
