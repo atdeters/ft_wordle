@@ -30,7 +30,6 @@ fn main() {
         let mut char_in: char = '_';
         loop {
             while char_in != '\n' {
-                // TODO: Turn everything into lowercase
                 key_in = term
                             .read_key()
                             .expect("Reason"); // TODO: Read what this is all about
@@ -39,6 +38,7 @@ fn main() {
                 match key_in {
                     console::Key::Char(c) => {
                         char_in = c;
+                        char_in.make_ascii_lowercase();
                     }
                     console::Key::Backspace => {
                         char_in = 127 as char;
