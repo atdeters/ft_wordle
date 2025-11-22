@@ -45,7 +45,7 @@ fn print_gamestate(buffer: [[(char, CharStatus); 5]; 6]) -> ()
 
 fn main() {
 	// Get binary and store the contents from the text file into a string
-	let	words: &'static str = include_str!("wordlists/words.txt");
+	let words: &'static str = include_str!("wordlists/words.txt");
 	let tmp_dict: HashSet<&str> = words.lines().collect();
     let mut dict: HashSet<&str> = Default::default();
     for word in &tmp_dict {
@@ -63,9 +63,9 @@ fn main() {
 
     let index = rng().random_range(0..dict.len());
     let word_to_find: &str = dict
-								.iter()
-								.nth(index)
-								.unwrap();
+                                .iter()
+                                .nth(index)
+                                .unwrap();
 
     // Create a counter for each char in the word_to_find
     let mut char_counter_wtf: [u8; 26] = [0; 26];
