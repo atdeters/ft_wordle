@@ -5,6 +5,8 @@ use macroquad::rand::srand;
 use macroquad::audio;
 use macroquad::audio::Sound;
 use macroquad::audio::play_sound_once;
+use macroquad::audio::PlaySoundParams;
+use macroquad::audio::play_sound;
 
 
 #[derive(PartialEq)]
@@ -37,6 +39,9 @@ const GRID_GAP: f32 = 5.0;
 const FONT_SIZE: u16 = 80;
 const INFO_FONT_SIZE: u16 = 30;
 const INFO_TEXT_GAP: f32 = 50.0;
+
+// === AUDIO ===
+const VOL_BUZZ: f32 = 0.35;
 
 fn print_gamestate_win(
 	t_buffer: [[(char, CharStatus); 5]; 6],
@@ -122,6 +127,7 @@ async fn main() {
         audio::load_sound("assets/sfx/click/click_sfx_04.wav").await.unwrap(),
         audio::load_sound("assets/sfx/click/click_sfx_05.wav").await.unwrap(),
     ];
+    let sfx_buzz: Sound = audio::load_sound("assets/sfx/notifications/sfx_fail.wav").await.unwrap();
 
     let mut game_over: bool = false;
 
@@ -208,12 +214,11 @@ async fn main() {
             println!("Log: Enter pressed");
             // Not big enough
             if buff_idx_x < 5 && !game_over {
-                play_click(&sfx_clicks);
+                play_sound(&sfx_buzz, PlaySoundParams { looped: false, volume: VOL_BUZZ });
                 info_text = "Not enough letters".to_string();
                 eprintln!("Not enough letters");
             }
             else if !game_over {
-                play_click(&sfx_clicks);
                 // Create a string out of our current buffer
                 let mut tmp_word: String = String::from("");
                 for char_tup in buffer[buff_idx_y] {
@@ -222,10 +227,12 @@ async fn main() {
                 let current_word: &str = tmp_word.as_str();
 
                 if !dict.contains(current_word) {
+                    play_sound(&sfx_buzz, PlaySoundParams { looped: false, volume: VOL_BUZZ });
                     info_text = format!("Word not in wordlist: {current_word}").to_string();
                     eprintln!("Word not in wordlist: {current_word}");
                 }
                 else if !game_over {
+                    play_click(&sfx_clicks);
 					// Start reveal animation
 					reveal_start = Some(get_time());
 					reveal_row = Some(buff_idx_y);
