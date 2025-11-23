@@ -101,6 +101,8 @@ fn print_gamestate_win(buffer: [[(char, CharStatus); 5]; 6]) -> ()
 
 const CHEATS_ON: bool = false;
 
+// TODO: Try to add a proper font
+
 #[macroquad::main("ft_wordle")]
 async fn main() {
 
