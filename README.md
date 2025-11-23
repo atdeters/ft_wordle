@@ -54,3 +54,9 @@ If you’re doing this Rush too:
 - There’s nothing to gain from it.  
 - The real fun is in **building your own program and learning along the way**.  
 - Experiment, create something unique, and enjoy the process.
+
+---
+
+## 🙏 Thanks
+
+A big thank you to **The New York Times** for the inspiration behind Wordle, and to everyone who helped us along the way during this project. Your guidance, support, and ideas made this Rush even more enjoyable!
