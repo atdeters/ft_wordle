@@ -4,7 +4,6 @@ use macroquad::rand::rand;
 use macroquad::rand::srand;
 use macroquad::audio;
 use macroquad::audio::Sound;
-use macroquad::audio::play_sound_once;
 use macroquad::audio::PlaySoundParams;
 use macroquad::audio::play_sound;
 
@@ -21,7 +20,7 @@ enum CharStatus {
 }
 
 // === ANIMATIONS ===
-const DELAY: f64 = 0.3;
+const DELAY: f64 = 0.2;
 
 // === COLORS ===
 const COL_BACK: Color = Color::new(18.0 / 255.0, 18.0 / 255.0, 19.0 / 255.0, 1.00);
@@ -41,7 +40,14 @@ const INFO_FONT_SIZE: u16 = 30;
 const INFO_TEXT_GAP: f32 = 50.0;
 
 // === AUDIO ===
-const VOL_BUZZ: f32 = 0.35;
+const MUTE: bool = false;
+
+const VOL_BUZZ: f32 = if MUTE { 0.0 } else { 0.35 };
+const VOL_WIN: f32 = if MUTE { 0.0 } else { 0.5 };
+const VOL_LOSE: f32 = if MUTE { 0.0 } else { 0.5 };
+const VOL_POP: f32 = if MUTE { 0.0 } else { 0.8 };
+const VOL_DUCK: f32 = if MUTE { 0.0 } else { 0.8 };
+const VOL_CLICK: f32 = if MUTE { 0.0 } else { 1.0 };
 
 fn print_gamestate_win(
 	t_buffer: [[(char, CharStatus); 5]; 6],
@@ -110,7 +116,7 @@ const CHEATS_ON: bool = true;
 
 fn play_click(sfx_arr: &[Sound; 5]) -> () {
     let idx: usize = (rand() % 5) as usize;
-    play_sound_once(&sfx_arr[idx]);
+    play_sound(&sfx_arr[idx], PlaySoundParams { looped: false, volume: VOL_CLICK });
 }
 
 
@@ -129,8 +135,12 @@ async fn main() {
     ];
     let sfx_buzz: Sound = audio::load_sound("assets/sfx/notifications/sfx_fail.wav").await.unwrap();
 	let sfx_secret: Sound = audio::load_sound("assets/sfx/secret/quack.wav").await.unwrap();
+    let sfx_win: Sound = audio::load_sound("assets/sfx/outcome/sfx_win.wav").await.unwrap();
+    let sfx_lose: Sound = audio::load_sound("assets/sfx/outcome/sfx_lose.wav").await.unwrap();
+    let sfx_pop: Sound = audio::load_sound("assets/sfx/notifications/sfx_pop.wav").await.unwrap();
 
     let mut game_over: bool = false;
+    let mut game_won: bool = false;
 
     // Create dict from file + validations
 	let words: &'static str = include_str!("wordlists/words.txt");
@@ -172,21 +182,12 @@ async fn main() {
 	// Animation Info
 	let mut reveal_start: Option<f64> = None;
 	let mut reveal_row: Option<usize> = None;
-    let mut in_animation: bool;
+    let mut in_animation: bool = false;
+    let mut result_printed: bool = false;
 
+    let mut played: u8 = 0;
     // Main game loop
     loop {
-
-        // Create user input blocking for animation duration
-        if reveal_start == None {
-            in_animation = false;
-        }
-        else if get_time() - reveal_start.unwrap() < 5.0 * DELAY {
-            in_animation = true;
-        }
-        else {
-            in_animation = false;
-        }
 
         if let Some(mut c) = get_char_pressed() {
 			if c.is_ascii_alphabetic() && buff_idx_x < 5 && !in_animation {
@@ -201,7 +202,7 @@ async fn main() {
 			}
 		}
 
-        if is_key_pressed(KeyCode::Backspace) && buff_idx_x > 0 {
+        if is_key_pressed(KeyCode::Backspace) && buff_idx_x > 0 && !in_animation {
             println!("Log: Backspace pressed");
             if !game_over {
                 play_click(&sfx_clicks);
@@ -211,7 +212,7 @@ async fn main() {
             }
         }
 
-        if is_key_pressed(KeyCode::Enter) {
+        if is_key_pressed(KeyCode::Enter) && !in_animation {
             println!("Log: Enter pressed");
             // Not big enough
             if buff_idx_x < 5 && !game_over {
@@ -233,14 +234,12 @@ async fn main() {
                     eprintln!("Word not in wordlist: {current_word}");
                 }
                 else if !game_over {
-                    play_click(&sfx_clicks);
 					// Start reveal animation
 					reveal_start = Some(get_time());
 					reveal_row = Some(buff_idx_y);
                     // Reveal information about latest word
                     let mut char_counter_curr = char_counter_wtf;
                     let mut correct_chars: u8 = 0;
-
                     /*
                     * We do this in 2 different loops so that if correct characters
                     * in the wrong position followed by ones in the right one do not
@@ -274,32 +273,76 @@ async fn main() {
                         }
                     }
 
-                    if correct_chars == 5 {
-                        game_over = true;
-                        if buff_idx_y == 0 {
-                            info_text = "Wow! You won on the first try!".to_string();
-                        }
-                        else {
-                            info_text = "Game won. Congratulations!".to_string();
-                        }
-                        println!("Won game");
-                    }
-
                     buff_idx_y += 1;
                     buff_idx_x = 0;
+
+                    if correct_chars == 5 {
+                        game_over = true;
+                        game_won = true;
+                    }
                     if buff_idx_y == 6 {
                         game_over = true;
-                        info_text = format!("You lost! The word was {word_to_find}").to_string();
-                        println!("You lost. The word was {}", word_to_find);
                     }
                 }
             }
         }
 
-        if is_key_pressed(KeyCode::Escape) && !game_over{
-			play_sound(&sfx_secret, PlaySoundParams { looped: false, volume: VOL_BUZZ});
+        // Create user input blocking for animation duration
+        if reveal_start == None {
+            in_animation = false;
+        }
+        else if get_time() - reveal_start.unwrap() < 5.0 * DELAY {
+            in_animation = true;
+        }
+        else {
+            in_animation = false;
+        }
+
+        if game_over && !in_animation && !result_printed {
+            if game_won {
+                play_sound(&sfx_win, PlaySoundParams { looped: false, volume: VOL_WIN });
+                info_text = "Game won. Congratulations!".to_string();
+                println!("Won game");
+            }
+            else {
+                play_sound(&sfx_lose, PlaySoundParams { looped: false, volume: VOL_LOSE });
+                info_text = format!("You lost! The word was {word_to_find}").to_string();
+                println!("You lost. The word was {}", word_to_find);
+            }
+            result_printed = true;
+        }
+
+        // Play reveal sounds
+        if in_animation {
+            let time: f64 = get_time() - reveal_start.unwrap();
+            if time > 0.0 && time < DELAY && played == 0 {
+                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: VOL_POP });
+                played += 1;
+            }
+            if time > DELAY && time < DELAY * 2.0 && played == 1 {
+                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: VOL_POP });
+                played += 1;
+            }
+            if time > DELAY * 2.0 && time < DELAY * 3.0 && played == 2 {
+                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: VOL_POP });
+                played += 1;
+            }
+            if time > DELAY * 3.0 && time < DELAY * 4.0 && played == 3 {
+                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: VOL_POP });
+                played += 1;
+            }
+            if time > DELAY * 4.0 && time < DELAY * 5.0 && played == 4 {
+                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: VOL_POP });
+                played = 0;
+            }
+        }
+
+        if is_key_pressed(KeyCode::Escape) {
+			play_sound(&sfx_secret, PlaySoundParams { looped: false, volume: VOL_DUCK});
             println!("Log: Escape pressed");
-            info_text = "There is no escape!".to_string();
+            if !game_over {
+                info_text = "There is no escape!".to_string();
+            }
         }
 
         print_gamestate_win(buffer, &info_text, reveal_start, reveal_row);
