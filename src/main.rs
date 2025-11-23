@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use ::rand::{Rng, rng};
+// use ::rand::{Rng, rng};
 use macroquad::prelude::*;
 
 #[derive(PartialEq)]
@@ -105,11 +105,15 @@ async fn main() {
     }
 
     // Chose random word of the day
-    let index = rng().random_range(0..dict.len());
+    // let index = rng().random_range(0..dict.len());
+    /*
     let word_to_find: &str = dict
                                 .iter()
                                 .nth(index)
                                 .unwrap();
+    */
+    let word_to_find: &str = "dekes";
+
     if CHEATS_ON == true {
         println!("{word_to_find}");
     }
