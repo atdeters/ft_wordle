@@ -161,10 +161,9 @@ fn main() {
         // Character in word but wrong position
         char_nb = 0;
         for char_tup in buffer[i].iter_mut() {
-            if char_counter_curr[char_tup.0 as usize - 'a' as usize] != 0 {
-                if char_counter_curr[char_tup.0 as usize - 'a' as usize] > 0 {
-                    char_counter_curr[char_tup.0 as usize - 'a' as usize] -= 1;
-                }
+            if char_counter_curr[char_tup.0 as usize - 'a' as usize] > 0 {
+                char_counter_curr[char_tup.0 as usize - 'a' as usize] -= 1;
+            }
                 char_tup.1 = CharStatus::WrongPos;
             }
             char_nb += 1;
