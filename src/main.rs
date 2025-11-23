@@ -58,11 +58,10 @@ fn main() {
         std::process::exit(1);
     }
 
-
     let mut buffer: [[(char, CharStatus); 5]; 6] = [[('_', CharStatus::NotInWord); 5]; 6];
 
     let index = rng().random_range(0..dict.len());
-    let mut word_to_find: &str = dict
+    let word_to_find: &str = dict
                                 .iter()
                                 .nth(index)
                                 .unwrap();
