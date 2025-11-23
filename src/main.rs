@@ -145,11 +145,13 @@ fn main() {
         * become colored incorrectly
         */
         let mut char_nb: usize = 0;
+        let mut counter_idx: usize;
         // Character in right position
         for char_tup in buffer[i].iter_mut() {
             if word_to_find.chars().nth(char_nb) == Some(char_tup.0) {
-                if char_counter_curr[char_tup.0 as usize - 'a' as usize] > 0 {
-                    char_counter_curr[char_tup.0 as usize - 'a' as usize] -= 1;
+                counter_idx = char_tup.0 as usize - 'a' as usize;
+                if char_counter_curr[counter_idx] > 0 {
+                    char_counter_curr[counter_idx] -= 1;
                 }
                 char_tup.1 = CharStatus::RightPos;
                 correct_chars += 1;
@@ -159,8 +161,9 @@ fn main() {
 
         // Character in word but wrong position
         for char_tup in buffer[i].iter_mut() {
-            if char_counter_curr[char_tup.0 as usize - 'a' as usize] > 0 {
-                char_counter_curr[char_tup.0 as usize - 'a' as usize] -= 1;
+            counter_idx = char_tup.0 as usize - 'a' as usize;
+            if char_counter_curr[counter_idx] > 0 {
+                char_counter_curr[counter_idx] -= 1;
                 char_tup.1 = CharStatus::WrongPos;
             }
         }
