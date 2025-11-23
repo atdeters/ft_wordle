@@ -2,9 +2,9 @@
 
 [![Rust](https://img.shields.io/badge/rust-stable-brightgreen)](https://www.rust-lang.org/) [![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-blue)](https://atdeters.github.io/ft_wordle/)
 
-Welcome to our implementation of the popular New York Times game **Wordle** — now playable right in your browser!  
+Welcome to our implementation of the popular New York Times game [**Wordle**](https://www.nytimes.com/games/wordle/index.html) — now playable right in your browser!  
 
-[🎮 **Play the Game Now**](https://atdeters.github.io/ft_wordle/)
+🎮 [**Play the Game Now**](https://atdeters.github.io/ft_wordle/)
 
 ---
 
