@@ -236,7 +236,7 @@ async fn main() {
 
         if is_key_pressed(KeyCode::Escape) {
             println!("Log: Escape pressed");
-            std::process::exit(0);
+            info_text = "There is no escape!".to_string();
         }
 
         print_gamestate_win(buffer, &info_text);
