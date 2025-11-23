@@ -4,7 +4,7 @@
 
 Welcome to our implementation of the popular New York Times game **Wordle** — now playable right in your browser!  
 
-[🎮 **Play the Game Now**](https://atdeters.github.io/ft_wordle/)
+<a href="https://atdeters.github.io/ft_wordle/" target="_blank">🎮 Play the Game Now</a>
 
 ---
 
