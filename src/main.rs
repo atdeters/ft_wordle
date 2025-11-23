@@ -127,9 +127,6 @@ async fn main() {
 
     // Main game loop
     loop {
-
-
-        // clear_background(BLACK);
         let curr = get_char_pressed();
         match curr {
             Some(mut c) => {
