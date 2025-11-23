@@ -228,8 +228,9 @@ async fn main() {
                     // Character in word but wrong position
                     for char_tup in buffer[buff_idx_y].iter_mut() {
                         counter_idx = char_tup.0 as usize - 'a' as usize;
-                        if char_counter_curr[counter_idx] > 0 {
-                                char_counter_curr[counter_idx] -= 1;
+                        if char_counter_curr[counter_idx] > 0
+                            && char_tup.1 != CharStatus::RightPos {
+                            char_counter_curr[counter_idx] -= 1;
                             char_tup.1 = CharStatus::WrongPos;
                         }
                         else if char_tup.1 != CharStatus::RightPos {
