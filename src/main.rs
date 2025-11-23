@@ -62,10 +62,12 @@ fn main() {
     let mut buffer: [[(char, CharStatus); 5]; 6] = [[('_', CharStatus::NotInWord); 5]; 6];
 
     let index = rng().random_range(0..dict.len());
-    let word_to_find: &str = dict
+    let mut word_to_find: &str = dict
                                 .iter()
                                 .nth(index)
                                 .unwrap();
+    word_to_find = "dekes";
+
 
     // Create a counter for each char in the word_to_find
     let mut char_counter_wtf: [u8; 26] = [0; 26];
@@ -152,9 +154,9 @@ fn main() {
                 counter_idx = char_tup.0 as usize - 'a' as usize;
                 if char_counter_curr[counter_idx] > 0 {
                     char_counter_curr[counter_idx] -= 1;
+                    char_tup.1 = CharStatus::RightPos;
+                    correct_chars += 1;
                 }
-                char_tup.1 = CharStatus::RightPos;
-                correct_chars += 1;
             }
             char_nb += 1;
         }
