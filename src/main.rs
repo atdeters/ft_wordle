@@ -240,10 +240,14 @@ async fn main() {
 
                     if correct_chars == 5 {
                         game_over = true;
-                        info_text = "Game won. Congratulations!".to_string();
+                        if buff_idx_y == 0 {
+                            info_text = "Wow! You won on the first try!".to_string();
+                        }
+                        else {
+                            info_text = "Game won. Congratulations!".to_string();
+                        }
                         println!("Won game");
                     }
-                    // TODO: Give special props for finishing in 1 try
 
                     buff_idx_y += 1;
                     buff_idx_x = 0;
