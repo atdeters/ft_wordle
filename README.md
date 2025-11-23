@@ -1,4 +1,4 @@
-# 🎯 Wordle in Rust
+# 🦀 Wordle in Rust
 
 [![Rust](https://img.shields.io/badge/rust-stable-brightgreen)](https://www.rust-lang.org/) [![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-blue)](https://atdeters.github.io/ft_wordle/)
 
