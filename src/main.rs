@@ -84,7 +84,7 @@ fn print_gamestate_win(t_buffer: [[(char, CharStatus); 5]; 6], t_text: &str) -> 
                             WHITE);
             }
             // Case: Not in word
-            else {
+            else if status == CharStatus::NotInWord {
                 draw_rectangle(screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP),
                                     GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP),
                                     BLOCK_SIZE,
@@ -107,7 +107,7 @@ fn print_gamestate_win(t_buffer: [[(char, CharStatus); 5]; 6], t_text: &str) -> 
                 WHITE);
 }
 
-const CHEATS_ON: bool = false;
+const CHEATS_ON: bool = true;
 
 // TODO: Try to add a proper font
 
