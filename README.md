@@ -17,7 +17,7 @@ Welcome to our implementation of the popular New York Times game [**Wordle**](ht
 
 ## 📚 About This Project
 
-This project was created as part of a **42 Rush** — a fast-paced, two-person coding challenge with a limited timeframe:
+This project was created as part of a [**42 Rush**](https://www.42vienna.com/en/about-42/) — a fast-paced, two-person coding challenge with a limited timeframe:
 
 **Friday 6:42 PM → Sunday 11:42 PM**  
 
