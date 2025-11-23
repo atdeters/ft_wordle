@@ -18,32 +18,31 @@ enum CharStatus {
     NotRevealed = 3
 }
 
+// === ANIMATIONS ===
+const DELAY: f64 = 0.3;
+
+// === COLORS ===
+const COL_BACK: Color = Color::new(18.0 / 255.0, 18.0 / 255.0, 19.0 / 255.0, 1.00);
+const COL_RIGHT_POS: Color = Color::new(83.0 / 255.0, 141.0 / 255.0, 78.0 / 255.0, 1.0);
+const COL_WRONG_POS: Color = Color::new(181.0 / 255.0, 160.0 / 255.0, 59.0 / 255.0, 1.0);
+// const COL_UNUSED = Color::new(129.0 / 255.0, 131.0 / 255.0, 132.0 / 255.0, 1.0);
+const COL_GRID: Color = Color::new(58.0 / 255.0, 58.0 / 255.0, 60.0 / 255.0, 1.00);
+const COL_NOTINWORD: Color = COL_GRID;
+
+// === SIZES ===
+const BLOCK_SIZE: f32 = 60.0;
+const GRID_OFFSET_Y: f32 = 50.0;
+const GRID_THICC: f32 = 4.0;
+const GRID_GAP: f32 = 5.0;
+const FONT_SIZE: u16 = 80;
+const INFO_FONT_SIZE: u16 = 30;
+const INFO_TEXT_GAP: f32 = 50.0;
+
 fn print_gamestate_win(
 	t_buffer: [[(char, CharStatus); 5]; 6],
 	t_text: &str,
 	reveal_start: Option<f64>,
-	reveal_row: Option<usize>,
-){
-    // === COLORS ===
-    const COL_BACK: Color = Color::new(18.0 / 255.0, 18.0 / 255.0, 19.0 / 255.0, 1.00);
-    const COL_RIGHT_POS: Color = Color::new(83.0 / 255.0, 141.0 / 255.0, 78.0 / 255.0, 1.0);
-    const COL_WRONG_POS: Color = Color::new(181.0 / 255.0, 160.0 / 255.0, 59.0 / 255.0, 1.0);
-    // const COL_UNUSED = Color::new(129.0 / 255.0, 131.0 / 255.0, 132.0 / 255.0, 1.0);
-    const COL_GRID: Color = Color::new(58.0 / 255.0, 58.0 / 255.0, 60.0 / 255.0, 1.00);
-    const COL_NOTINWORD: Color = COL_GRID;
-
-    // === SIZES ===
-    const BLOCK_SIZE: f32 = 60.0;
-    const GRID_OFFSET_Y: f32 = 50.0;
-    const GRID_THICC: f32 = 4.0;
-    const GRID_GAP: f32 = 5.0;
-    const FONT_SIZE: u16 = 80;
-    const INFO_FONT_SIZE: u16 = 30;
-    const INFO_TEXT_GAP: f32 = 50.0;
-
-	// === ANIMATIONS ===
-	const DELAY: f64 = 0.3;
-
+	reveal_row: Option<usize>,) {
     clear_background(COL_BACK);
     for i in 0..6 {
         for j in -2isize..3 {
@@ -58,17 +57,13 @@ fn print_gamestate_win(
 			// Determine what status to draw based on progressive reveal
             //let status: CharStatus = t_buffer[i][(j+2) as usize].1;
 			let reveal_index = (j + 2) as usize;
-            let status = if let (Some(start), Some(row)) = (reveal_start, reveal_row) {
-                if i == row && get_time() - start < reveal_index as f64 * DELAY {
-                    CharStatus::NotRevealed
-                }
-				else {
-                    t_buffer[i][reveal_index].1
-                }
-            } 
-			else {
-                t_buffer[i][reveal_index].1
-            };
+
+            let mut status = t_buffer[i][reveal_index].1;
+            if reveal_row != None && reveal_start != None
+                && i == reveal_row.expect("Fail")
+                && get_time() - reveal_start.expect("Fail") < reveal_index as f64 * DELAY {
+                status = CharStatus::NotRevealed
+            }
 
             // Variables for the boxes
             let box_x: f32 = screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP);
@@ -119,15 +114,14 @@ fn play_click(sfx_arr: &[Sound; 5]) -> () {
 #[macroquad::main("ft_wordle")]
 async fn main() {
 
-
     // Load sfx
-    let sfx_clicks: [Sound; 5] = [  audio::load_sound("assets/sfx/click/click_sfx_01.wav").await.unwrap(),
-                                    audio::load_sound("assets/sfx/click/click_sfx_02.wav").await.unwrap(),
-                                    audio::load_sound("assets/sfx/click/click_sfx_03.wav").await.unwrap(),
-                                    audio::load_sound("assets/sfx/click/click_sfx_04.wav").await.unwrap(),
-                                    audio::load_sound("assets/sfx/click/click_sfx_05.wav").await.unwrap(),
+    let sfx_clicks: [Sound; 5] = [
+        audio::load_sound("assets/sfx/click/click_sfx_01.wav").await.unwrap(),
+        audio::load_sound("assets/sfx/click/click_sfx_02.wav").await.unwrap(),
+        audio::load_sound("assets/sfx/click/click_sfx_03.wav").await.unwrap(),
+        audio::load_sound("assets/sfx/click/click_sfx_04.wav").await.unwrap(),
+        audio::load_sound("assets/sfx/click/click_sfx_05.wav").await.unwrap(),
     ];
-
 
     let mut game_over: bool = false;
 
@@ -171,11 +165,24 @@ async fn main() {
 	// Animation Info
 	let mut reveal_start: Option<f64> = None;
 	let mut reveal_row: Option<usize> = None;
+    let mut in_animation: bool;
 
     // Main game loop
     loop {
+
+        // Create user input blocking for animation duration
+        if reveal_start == None {
+            in_animation = false;
+        }
+        else if get_time() - reveal_start.unwrap() < 5.0 * DELAY {
+            in_animation = true;
+        }
+        else {
+            in_animation = false;
+        }
+
         if let Some(mut c) = get_char_pressed() {
-			if c.is_ascii_alphabetic() && buff_idx_x < 5 {
+			if c.is_ascii_alphabetic() && buff_idx_x < 5 && !in_animation {
 				println!("Log: {c} pressed");
 				if !game_over {
                     play_click(&sfx_clicks);
