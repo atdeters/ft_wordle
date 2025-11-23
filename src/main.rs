@@ -14,8 +14,12 @@ enum CharStatus {
     NotRevealed = 3
 }
 
-fn print_gamestate_win(t_buffer: [[(char, CharStatus); 5]; 6], t_text: &str) -> ()
-{
+fn print_gamestate_win(
+	t_buffer: [[(char, CharStatus); 5]; 6],
+	t_text: &str,
+	reveal_start: Option<f64>,
+	reveal_row: Option<usize>,
+){
     // === COLORS ===
     const COL_BACK: Color = Color::new(18.0 / 255.0, 18.0 / 255.0, 19.0 / 255.0, 1.00);
     const COL_RIGHT_POS: Color = Color::new(83.0 / 255.0, 141.0 / 255.0, 78.0 / 255.0, 1.0);
@@ -33,6 +37,9 @@ fn print_gamestate_win(t_buffer: [[(char, CharStatus); 5]; 6], t_text: &str) -> 
     const INFO_FONT_SIZE: u16 = 30;
     const INFO_TEXT_GAP: f32 = 50.0;
 
+	// === ANIMATIONS ===
+	const DELAY: f64 = 0.3;
+
     clear_background(COL_BACK);
     for i in 0..6 {
         for j in -2isize..3 {
@@ -44,7 +51,20 @@ fn print_gamestate_win(t_buffer: [[(char, CharStatus); 5]; 6], t_text: &str) -> 
             let text_x: f32 = screen_width() / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP) - center.x;
             let text_y: f32 = GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP) + BLOCK_SIZE / 2.0 - center.y;
 
-            let status: CharStatus = t_buffer[i][(j+2) as usize].1;
+			// Determine what status to draw based on progressive reveal
+            //let status: CharStatus = t_buffer[i][(j+2) as usize].1;
+			let reveal_index = (j + 2) as usize;
+            let status = if let (Some(start), Some(row)) = (reveal_start, reveal_row) {
+                if i == row && get_time() - start < reveal_index as f64 * DELAY {
+                    CharStatus::NotRevealed
+                }
+				else {
+                    t_buffer[i][reveal_index].1
+                }
+            } 
+			else {
+                t_buffer[i][reveal_index].1
+            };
 
             // Variables for the boxes
             let box_x: f32 = screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP);
@@ -128,28 +148,28 @@ async fn main() {
     let mut buff_idx_x: usize = 0;
     let mut info_text: String = String::from("");
 
+	// Animation Info
+	let mut reveal_start: Option<f64> = None;
+	let mut reveal_row: Option<usize> = None;
+
     // Main game loop
     loop {
-        let curr = get_char_pressed();
-        match curr {
-            Some(mut c) => {
-                if c.is_ascii_alphabetic() && buff_idx_x < 5 {
-                    println!("Log: {c} pressed");
-                    if !game_over {
-                    c.make_ascii_lowercase();
-                    buffer[buff_idx_y][buff_idx_x].0 = c;
-                    buff_idx_x += 1;
-                    info_text = "".to_string();
-                    }
-                }
-            }
-            None => {}
-        }
+        if let Some(mut c) = get_char_pressed() {
+			if c.is_ascii_alphabetic() && buff_idx_x < 5 {
+				println!("Log: {c} pressed");
+				if !game_over {
+				c.make_ascii_lowercase();
+				buffer[buff_idx_y][buff_idx_x].0 = c;
+				buff_idx_x += 1;
+				info_text.clear();
+				}
+			}
+		}
 
         if is_key_pressed(KeyCode::Backspace) && buff_idx_x > 0 {
             println!("Log: Backspace pressed");
             if !game_over {
-                info_text = "".to_string();
+                info_text.clear();
                 buff_idx_x -= 1;
                 buffer[buff_idx_y][buff_idx_x].0 = '_';
             }
@@ -175,6 +195,9 @@ async fn main() {
                     eprintln!("Word not in wordlist: {current_word}");
                 }
                 else if !game_over {
+					// Start reveal animation
+					reveal_start = Some(get_time());
+					reveal_row = Some(buff_idx_y);
                     // Reveal information about latest word
                     let mut char_counter_curr = char_counter_wtf;
                     let mut correct_chars: u8 = 0;
@@ -234,12 +257,12 @@ async fn main() {
             }
         }
 
-        if is_key_pressed(KeyCode::Escape) {
+        if is_key_pressed(KeyCode::Escape) && !game_over{
             println!("Log: Escape pressed");
             info_text = "There is no escape!".to_string();
         }
 
-        print_gamestate_win(buffer, &info_text);
+        print_gamestate_win(buffer, &info_text, reveal_start, reveal_row);
         next_frame().await;
     }
 }
