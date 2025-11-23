@@ -1,7 +1,4 @@
 use std::collections::HashSet;
-use colored::Colorize;
-use console::Term;
-use crossterm::{cursor, execute};
 use ::rand::{Rng, rng};
 use macroquad::prelude::*;
 
@@ -14,35 +11,6 @@ enum CharStatus {
     WrongPos = 1,
     RightPos = 2,
     NotRevealed = 3
-}
-
-fn print_gamestate(buffer: [[(char, CharStatus); 5]; 6]) -> ()
-{
-    print!("\x1B[2J\x1B[H");
-    for line in buffer {
-        for tup in line {
-            match tup.1 {
-                CharStatus::RightPos => {
-                    print!("{}", tup.0
-                                    .to_string()
-                                    .bold()
-                                    .black()
-                                    .on_truecolor(128, 239, 128));
-                }
-                CharStatus::WrongPos => {
-                    print!("{}", tup.0
-                                    .to_string()
-                                    .bold()
-                                    .black()
-                                    .on_truecolor(255, 206, 27));
-                }
-                _ => {
-                    print!("{}", tup.0);
-                }
-            }
-        }
-        println!("");
-    }
 }
 
 fn print_gamestate_win(buffer: [[(char, CharStatus); 5]; 6]) -> ()
@@ -66,7 +34,8 @@ fn print_gamestate_win(buffer: [[(char, CharStatus); 5]; 6]) -> ()
     for i in 0..6 {
         for j in -2isize..3 {
             let mut curr_char: String = buffer[i][(j + 2) as usize].0.to_string();
-            let mut status: CharStatus = buffer[i][(j+2) as usize].1;
+            curr_char.make_ascii_uppercase();
+            let status: CharStatus = buffer[i][(j+2) as usize].1;
             // Case: empty (aka '_') || not yet revealed
             if curr_char == "_" || status == CharStatus::NotRevealed {
                 draw_rectangle_lines(screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP),
@@ -75,7 +44,7 @@ fn print_gamestate_win(buffer: [[(char, CharStatus); 5]; 6]) -> ()
                                     BLOCK_SIZE,
                                     GRID_THICC,
                                     COL_GRID);
-                if (curr_char != "_") {
+                if curr_char != "_" {
                     let center = get_text_center(&curr_char, Option::None, FONT_SIZE, 1.0, 0.0);
                     draw_text(&curr_char,
                         (screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.x,
@@ -130,21 +99,140 @@ fn print_gamestate_win(buffer: [[(char, CharStatus); 5]; 6]) -> ()
     }
 }
 
-
+const CHEATS_ON: bool = false;
 
 #[macroquad::main("ft_wordle")]
 async fn main() {
 
+    // Create dict from file + validations
+	let words: &'static str = include_str!("wordlists/words.txt");
+	let tmp_dict: HashSet<&str> = words.lines().collect();
+    let mut dict: HashSet<&str> = Default::default();
+    for word in &tmp_dict {
+        if word.len() == 5 {
+            dict.insert(word);
+        }
+    }
+    if dict.len() == 0 {
+        eprintln!("Empty wordlist. Exiting game!");
+        std::process::exit(1);
+    }
+
+    // Chose random word of the day
+    let index = rng().random_range(0..dict.len());
+    let word_to_find: &str = dict
+                                .iter()
+                                .nth(index)
+                                .unwrap();
+    if CHEATS_ON == true {
+        println!("{word_to_find}");
+    }
+
+    // Create a counter for each char in the word_to_find
+    let mut char_counter_wtf: [u8; 26] = [0; 26];
+    for char in word_to_find.chars() {
+        char_counter_wtf[char as usize - 'a' as usize] += 1;
+    }
+
+    let mut buffer: [[(char, CharStatus); 5]; 6] = [[('_', CharStatus::NotRevealed); 5]; 6];
+    let mut buff_idx_y: usize = 0;
+    let mut buff_idx_x: usize = 0;
+
     // Main game loop
     loop {
-        let mut buffer: [[(char, CharStatus); 5]; 6] = [[('_', CharStatus::NotRevealed); 5]; 6];
-        buffer[1][0].0 = 'a';
-        buffer[1][0].1 = CharStatus::RightPos;
-        buffer[2][0].0 = 'b';
-        buffer[2][0].1 = CharStatus::WrongPos;
-        buffer[3][0].0 = 'c';
-        buffer[3][0].1 = CharStatus::NotInWord;
-        buffer[4][0].0 = 'd';
+
+        let curr = get_char_pressed();
+        match curr {
+            Some(mut c) => {
+                if c.is_ascii_alphabetic() && buff_idx_x < 5 {
+                    c.make_ascii_lowercase();
+                    buffer[buff_idx_y][buff_idx_x].0 = c;
+                    buff_idx_x += 1;
+                    println!("Log: {c} pressed");
+                }
+            }
+            None => {}
+        }
+
+        if is_key_pressed(KeyCode::Backspace) && buff_idx_x > 0 {
+            println!("Log: Backspace pressed");
+            buff_idx_x -= 1;
+            buffer[buff_idx_y][buff_idx_x].0 = '_';
+        }
+
+        if is_key_pressed(KeyCode::Enter) {
+            println!("Log: Enter pressed");
+            // Not big enough
+            if buff_idx_x < 5 {
+                eprintln!("Not enough letters"); // TODO: Print this on the screen
+            }
+            else {
+                // Create a string out of our current buffer
+                let mut tmp_word: String = String::from("");
+                for char_tup in buffer[buff_idx_y] {
+                    tmp_word.push_str(&char_tup.0.to_string());
+                }
+                let current_word: &str = tmp_word.as_str();
+
+                if !dict.contains(current_word) {
+                    eprintln!("Word not in wordlist: {current_word}"); // TODO: Print this on the screen
+                }
+                else {
+                    // Reveal information about latest word
+                    let mut char_counter_curr = char_counter_wtf;
+                    let mut correct_chars: u8 = 0;
+
+                    /*
+                    * We do this in 2 different loops so that if correct characters
+                    * in the wrong position followed by ones in the right one do not
+                    * become colored incorrectly
+                    */
+                    let mut char_nb: usize;
+                    char_nb = 0;
+                    // Character in right position
+                    for char_tup in buffer[buff_idx_y].iter_mut() {
+                        if word_to_find.chars().nth(char_nb) == Some(char_tup.0) {
+                            if char_counter_curr[char_tup.0 as usize - 'a' as usize] > 0 {
+                                char_counter_curr[char_tup.0 as usize - 'a' as usize] -= 1;
+                            }
+                            char_tup.1 = CharStatus::RightPos;
+                            correct_chars += 1;
+                        }
+                        char_nb += 1;
+                    }
+
+                    // Character in word but wrong position
+                    char_nb = 0;
+                    for char_tup in buffer[buff_idx_y].iter_mut() {
+                        if char_counter_curr[char_tup.0 as usize - 'a' as usize] != 0 {
+                            if char_counter_curr[char_tup.0 as usize - 'a' as usize] > 0 {
+                                char_counter_curr[char_tup.0 as usize - 'a' as usize] -= 1;
+                            }
+                            char_tup.1 = CharStatus::WrongPos;
+                        }
+                        else if char_tup.1 != CharStatus::RightPos {
+                            char_tup.1 = CharStatus::NotInWord;
+                        }
+                        char_nb += 1;
+                    }
+
+                    if correct_chars == 5 {
+                        println!("Won game"); // TODO: Put this on the screen
+                        std::process::exit(0); // TODO: Don't exit but show winning screen
+                    }
+                    buff_idx_y += 1;
+                    buff_idx_x = 0;
+                    if buff_idx_y == 6 {
+                        println!("You lose. The word was {}", word_to_find);
+                        std::process::exit(0); // TODO: Don't exit but show winning screen
+                    }
+                }
+            }
+        }
+
+        if is_key_pressed(KeyCode::Escape) {
+            std::process::exit(0);
+        }
 
         print_gamestate_win(buffer);
         next_frame().await;
@@ -192,6 +280,9 @@ async fn main() {
 
     let mut term = Term::stdout(); // Terminal used to read input from user
     let _ = execute!(term, cursor::Hide);
+
+
+
     for i in 0..6 {
         print_gamestate(buffer);
         // Let user build the word in the buffer
