@@ -211,11 +211,13 @@ async fn main() {
                     * become colored incorrectly
                     */
                     let mut char_nb: usize = 0;
+                    let mut counter_idx: usize;
                     // Character in right position
                     for char_tup in buffer[buff_idx_y].iter_mut() {
                         if word_to_find.chars().nth(char_nb) == Some(char_tup.0) {
-                            if char_counter_curr[char_tup.0 as usize - 'a' as usize] > 0 {
-                                char_counter_curr[char_tup.0 as usize - 'a' as usize] -= 1;
+                            counter_idx = char_tup.0 as usize - 'a' as usize;
+                            if char_counter_curr[counter_idx] > 0 {
+                                char_counter_curr[counter_idx] -= 1;
                             }
                             char_tup.1 = CharStatus::RightPos;
                             correct_chars += 1;
@@ -225,8 +227,9 @@ async fn main() {
 
                     // Character in word but wrong position
                     for char_tup in buffer[buff_idx_y].iter_mut() {
-                        if char_counter_curr[char_tup.0 as usize - 'a' as usize] > 0 {
-                                char_counter_curr[char_tup.0 as usize - 'a' as usize] -= 1;
+                        counter_idx = char_tup.0 as usize - 'a' as usize;
+                        if char_counter_curr[counter_idx] > 0 {
+                                char_counter_curr[counter_idx] -= 1;
                             char_tup.1 = CharStatus::WrongPos;
                         }
                         else if char_tup.1 != CharStatus::RightPos {
@@ -238,8 +241,9 @@ async fn main() {
                         game_over = true;
                         info_text = "Game won. Congratulations!".to_string();
                         println!("Won game");
-
                     }
+                    // TODO: Give special props for finishing in 1 try
+
                     buff_idx_y += 1;
                     buff_idx_x = 0;
                     if buff_idx_y == 6 {
