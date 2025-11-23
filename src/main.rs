@@ -16,11 +16,12 @@ enum CharStatus {
 fn print_gamestate_win(t_buffer: [[(char, CharStatus); 5]; 6], t_text: &str) -> ()
 {
     // === COLORS ===
-    // const COL_BACK: Color = Color::new(18.0 / 255.0, 18.0 / 255.0, 19.0 / 255.0, 1.00);
+    const COL_BACK: Color = Color::new(18.0 / 255.0, 18.0 / 255.0, 19.0 / 255.0, 1.00);
     const COL_RIGHT_POS: Color = Color::new(83.0 / 255.0, 141.0 / 255.0, 78.0 / 255.0, 1.0);
     const COL_WRONG_POS: Color = Color::new(181.0 / 255.0, 160.0 / 255.0, 59.0 / 255.0, 1.0);
     // const COL_UNUSED = Color::new(129.0 / 255.0, 131.0 / 255.0, 132.0 / 255.0, 1.0);
     const COL_GRID: Color = Color::new(58.0 / 255.0, 58.0 / 255.0, 60.0 / 255.0, 1.00);
+    const COL_NOTINWORD: Color = COL_GRID;
 
     // === SIZES ===
     const BLOCK_SIZE: f32 = 60.0;
@@ -31,74 +32,47 @@ fn print_gamestate_win(t_buffer: [[(char, CharStatus); 5]; 6], t_text: &str) -> 
     const INFO_FONT_SIZE: u16 = 30;
     const INFO_TEXT_GAP: f32 = 50.0;
 
-    // clear_background(COL_BACK);
-    // Draw complete grid
+    clear_background(COL_BACK);
     for i in 0..6 {
         for j in -2isize..3 {
+
+            // Char and its variables to print it
             let mut curr_char: String = t_buffer[i][(j + 2) as usize].0.to_string();
             curr_char.make_ascii_uppercase();
+            let center: Vec2 = get_text_center(&curr_char, Option::None, FONT_SIZE, 1.0, 0.0);
+            let text_x: f32 = screen_width() / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP) - center.x;
+            let text_y: f32 = GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP) + BLOCK_SIZE / 2.0 - center.y;
+
             let status: CharStatus = t_buffer[i][(j+2) as usize].1;
-            // Case: empty (aka '_') || not yet revealed
-            if curr_char == "_" || status == CharStatus::NotRevealed {
-                draw_rectangle_lines(screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP),
-                                    GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP),
-                                    BLOCK_SIZE,
-                                    BLOCK_SIZE,
-                                    GRID_THICC,
-                                    COL_GRID);
-                if curr_char != "_" {
-                    let center = get_text_center(&curr_char, Option::None, FONT_SIZE, 1.0, 0.0);
-                    draw_text(&curr_char,
-                        (screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.x,
-                        (GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.y,
-                                FONT_SIZE.into(),
-                                WHITE);
+
+            // Variables for the boxes
+            let box_x: f32 = screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP);
+            let box_y: f32 = GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP);
+
+            match status {
+                CharStatus::NotRevealed => {
+                    draw_rectangle_lines(box_x, box_y, BLOCK_SIZE, BLOCK_SIZE, GRID_THICC, COL_GRID);
+                    if curr_char != "_" {
+                        draw_text(&curr_char, text_x, text_y, FONT_SIZE.into(),WHITE);
+                    }
                 }
-            }
-            // Case: WrongPos
-            else if status == CharStatus::WrongPos {
-                draw_rectangle(screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP),
-                                    GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP),
-                                    BLOCK_SIZE,
-                                    BLOCK_SIZE,
-                                    COL_WRONG_POS);
-                let center = get_text_center(&curr_char, Option::None, FONT_SIZE, 1.0, 0.0);
-                draw_text(&curr_char,
-                    (screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.x,
-                    (GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.y,
-                            FONT_SIZE.into(),
-                            WHITE);
-            }
-            // Case: RightPos
-            else if status == CharStatus::RightPos {
-                draw_rectangle(screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP),
-                                    GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP),
-                                    BLOCK_SIZE,
-                                    BLOCK_SIZE,
-                                    COL_RIGHT_POS);
-                let center = get_text_center(&curr_char, Option::None, FONT_SIZE, 1.0, 0.0);
-                draw_text(&curr_char,
-                    (screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.x,
-                    (GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.y,
-                            FONT_SIZE.into(),
-                            WHITE);
-            }
-            // Case: Not in word
-            else if status == CharStatus::NotInWord {
-                draw_rectangle(screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP),
-                                    GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP),
-                                    BLOCK_SIZE,
-                                    BLOCK_SIZE,
-                                    COL_GRID);
-                let center = get_text_center(&curr_char, Option::None, FONT_SIZE, 1.0, 0.0);
-                draw_text(&curr_char,
-                    (screen_width() / 2.0 - BLOCK_SIZE / 2.0 + j as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.x,
-                    (GRID_OFFSET_Y + i as f32 * (BLOCK_SIZE + GRID_GAP)) + BLOCK_SIZE / 2.0 - center.y,
-                            FONT_SIZE.into(),
-                            WHITE);
+                CharStatus::WrongPos => {
+                    draw_rectangle(box_x, box_y, BLOCK_SIZE, BLOCK_SIZE, COL_WRONG_POS);
+                    draw_text(&curr_char, text_x, text_y, FONT_SIZE.into(), WHITE);
+                }
+                CharStatus::RightPos => {
+                    draw_rectangle(box_x, box_y, BLOCK_SIZE, BLOCK_SIZE, COL_RIGHT_POS);
+                    draw_text(&curr_char, text_x, text_y, FONT_SIZE.into(), WHITE);
+                }
+                CharStatus::NotInWord => {
+                    draw_rectangle(box_x, box_y, BLOCK_SIZE, BLOCK_SIZE, COL_NOTINWORD);
+                    draw_text(&curr_char, text_x, text_y, FONT_SIZE.into(),  WHITE);
+                }
             }
         }
     }
+
+    // Display info_text
     let center = get_text_center(t_text, Option::None, INFO_FONT_SIZE, 1.0, 0.0);
     draw_text(t_text,
         screen_width() / 2.0 - center.x,
@@ -107,7 +81,7 @@ fn print_gamestate_win(t_buffer: [[(char, CharStatus); 5]; 6], t_text: &str) -> 
                 WHITE);
 }
 
-const CHEATS_ON: bool = false;
+const CHEATS_ON: bool = true;
 
 // TODO: Try to add a proper font
 
