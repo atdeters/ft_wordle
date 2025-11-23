@@ -4,7 +4,7 @@
 
 Welcome to our implementation of the popular New York Times game **Wordle** — now playable right in your browser!  
 
-<a href="https://atdeters.github.io/ft_wordle/" target="_blank">🎮 Play the Game Now</a>
+[🎮 **Play the Game Now**](https://atdeters.github.io/ft_wordle/)
 
 ---
 
@@ -54,49 +54,3 @@ If you’re doing this Rush too:
 - There’s nothing to gain from it.  
 - The real fun is in **building your own program and learning along the way**.  
 - Experiment, create something unique, and enjoy the process.
-
----
-
-## 💻 Run Locally
-
-If you want to try the game locally, follow these steps:
-
-1. **Clone the repository:**
-
-git clone https://github.com/atdeters/ft_wordle.git
-cd ft_wordle
-
-markdown
-Copy code
-
-2. **Install Rust** (if not already installed):
-
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-rustup target add wasm32-unknown-unknown
-
-markdown
-Copy code
-
-3. **Build the WebAssembly binary:**
-
-cargo build --release --target wasm32-unknown-unknown
-
-markdown
-Copy code
-
-4. **Serve the game locally** (using Python, for example):
-
-Python 3
-python3 -m http.server 8080
-
-markdown
-Copy code
-
-5. **Open your browser** and go to:
-
-http://localhost:8080/index.html
-
-powershell
-Copy code
-
-You should now be able to play Wordle in your browser using the locally compiled WASM file.
