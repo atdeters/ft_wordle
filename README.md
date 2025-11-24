@@ -11,7 +11,7 @@ Welcome to our implementation of the popular New York Times game [**Wordle**](ht
 
 ## 🕹️ Gameplay Preview
 
-![Gameplay Placeholder](screenshot.gif)  
+![Gameplay](docs/playthrough.gif)  
 *Replace this with an actual GIF or screenshot of the game in action.*
 
 ---

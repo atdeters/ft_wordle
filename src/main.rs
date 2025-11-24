@@ -32,7 +32,7 @@ const COL_NOTINWORD: Color = COL_GRID;
 
 // === SIZES ===
 const BLOCK_SIZE: f32 = 60.0;
-const GRID_OFFSET_Y: f32 = 50.0;
+const GRID_OFFSET_Y: f32 = 100.0;
 const GRID_THICC: f32 = 4.0;
 const GRID_GAP: f32 = 5.0;
 const FONT_SIZE: u16 = 80;
