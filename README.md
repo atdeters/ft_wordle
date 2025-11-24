@@ -1,4 +1,4 @@
-# 🦀 42 Rush - Wordle [Rust]
+# 🦀 Rush - Wordle [Rust]
 
 [![Rust](https://img.shields.io/badge/rust-stable-brightgreen)](https://www.rust-lang.org/) 
 [![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-blue)](https://atdeters.github.io/wordle/)
@@ -8,7 +8,6 @@ Welcome to our implementation of the popular New York Times game [**Wordle**](ht
 🎮 [**Play the Game Now**](https://atdeters.github.io/wordle/)
 
 ---
-
 
 ![Gameplay](docs/playthrough.gif)  
 
@@ -25,7 +24,7 @@ The goal? Work in a team, push your limits, experiment with new languages, and h
 To up the challenge, we decided to:
 
 - Implement the game in **Rust**, a language new to both of us.  
-- Use the **Macroquad** library, enabling compilation to **WebAssembly (WASM)**.  
+- Use the [**Macroquad**](https://macroquad.rs/) library, enabling compilation to [**WebAssembly (WASM)**](https://webassembly.org/).  
   - Combined with a lightweight HTML wrapper, this allows the game to run directly in the browser.  
   - Deployment is automated via **GitHub Actions**, so every push updates the live version on GitHub Pages.
 
