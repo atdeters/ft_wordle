@@ -1,7 +1,6 @@
 # 🔡 42 Rush: Wordle
 
 [![Rust](https://img.shields.io/badge/rust-stable-brightgreen)](https://www.rust-lang.org/) 
-[![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-blue)](https://atdeters.github.io/wordle/)
 
 Welcome to our implementation of the popular New York Times game [**Wordle**](https://www.nytimes.com/games/wordle/index.html) — now playable right in your browser!  
 
@@ -36,15 +35,17 @@ To up the challenge, we decided to:
 This Rush gave us insights into:
 
 - **Rust syntax, ownership, and borrowing**  
-- **Game development in Rust**: loops, input handling, and rendering with Macroquad  
+- **Game development in Rust**: game loop, input handling, and rendering with **Macroquad**  
 - **Compiling Rust to WebAssembly** for browser deployment  
+- **Implementing Audio** into the game with interactive logic  
+- **Adding a simple reveal Animation**  
 - **Teamwork under tight deadlines**  
 
 It was a challenging but **highly rewarding experience**, showing how the 42 system builds **language-agnostic skills** and helps us adapt quickly to new environments.
 
 ---
 
-## ⚠️ Disclaimer for 42 Students
+## ⚠️ Disclaimer for other 42 Students
 
 If you’re doing this Rush too:  
 
