@@ -338,6 +338,7 @@ async fn main() {
         }
 
         if is_key_pressed(KeyCode::Escape) {
+            get_char_pressed();
 			play_sound(&sfx_secret, PlaySoundParams { looped: false, volume: VOL_DUCK});
             println!("Log: Escape pressed");
             if !game_over {
