@@ -45,13 +45,12 @@ const INTRO_MSG_SIZE: u16 = 25;
 
 // === AUDIO ===
 const MUTE: bool = false;
-
-const VOL_BUZZ: f32 = if MUTE { 0.0 } else { 0.35 };
-const VOL_WIN: f32 = if MUTE { 0.0 } else { 0.5 };
-const VOL_LOSE: f32 = if MUTE { 0.0 } else { 0.5 };
-const VOL_POP: f32 = if MUTE { 0.0 } else { 0.8 };
-const VOL_DUCK: f32 = if MUTE { 0.0 } else { 0.8 };
-const VOL_CLICK: f32 = if MUTE { 0.0 } else { 1.0 };
+const VOL_INIT_BUZZ: f32 = 0.35;
+const VOL_INIT_WIN: f32 = 0.5;
+const VOL_INIT_LOSE: f32 = 0.5;
+const VOL_INIT_POP: f32 = 0.8;
+const VOL_INIT_DUCK: f32 = 0.8;
+const VOL_INIT_CLICK: f32 = 1.0;
 
 fn print_gamestate_win(
 	t_buffer: [[(char, CharStatus); 5]; 6],
@@ -118,9 +117,9 @@ fn print_gamestate_win(
 
 const CHEATS_ON: bool = true;
 
-fn play_click(sfx_arr: &[Sound; 5]) -> () {
+fn play_click(sfx_arr: &[Sound; 5], param: PlaySoundParams) {
     let idx: usize = (rand() % 5) as usize;
-    play_sound(&sfx_arr[idx], PlaySoundParams { looped: false, volume: VOL_CLICK });
+    play_sound(&sfx_arr[idx], param);
 }
 
 
@@ -129,7 +128,7 @@ fn play_click(sfx_arr: &[Sound; 5]) -> () {
 #[macroquad::main("ft_wordle")]
 async fn main() {
 
-    // Load sfx
+    // === AUDIO ===
     let sfx_clicks: [Sound; 5] = [
         audio::load_sound("assets/sfx/click/click_sfx_01.wav").await.unwrap(),
         audio::load_sound("assets/sfx/click/click_sfx_02.wav").await.unwrap(),
@@ -142,6 +141,16 @@ async fn main() {
     let sfx_win: Sound = audio::load_sound("assets/sfx/outcome/sfx_win.wav").await.unwrap();
     let sfx_lose: Sound = audio::load_sound("assets/sfx/outcome/sfx_lose.wav").await.unwrap();
     let sfx_pop: Sound = audio::load_sound("assets/sfx/notifications/sfx_pop.wav").await.unwrap();
+
+    let mut mute: bool = MUTE;
+    let mut vol_buzz;
+    let mut vol_win;
+    let mut vol_lose;
+    let mut vol_pop;
+    let mut vol_duck;
+    let mut vol_click;
+    // === !AUDIO ===
+
 
     let mut game_over: bool = false;
     let mut game_won: bool = false;
@@ -195,6 +204,29 @@ async fn main() {
     // Main game loop
     loop {
 
+        if !mute {
+            vol_buzz = VOL_INIT_BUZZ;
+            vol_win = VOL_INIT_WIN;
+            vol_lose = VOL_INIT_LOSE;
+            vol_pop = VOL_INIT_POP;
+            vol_duck = VOL_INIT_DUCK;
+            vol_click = VOL_INIT_CLICK;
+        }
+        else {
+            vol_buzz = 0.0;
+            vol_win = 0.0;
+            vol_lose = 0.0;
+            vol_pop = 0.0;
+            vol_duck = 0.0;
+            vol_click = 0.0;
+        }
+
+        if is_key_pressed(KeyCode::Space) {
+            println!("Log: Space pressed");
+            mute = !mute;
+        }
+
+
         // Create a loading screen
         if !user_entered {
             clear_background(COL_BACK);
@@ -215,7 +247,7 @@ async fn main() {
 			if c.is_ascii_alphabetic() && buff_idx_x < 5 && !in_animation {
 				println!("Log: {c} pressed");
 				if !game_over {
-                    play_click(&sfx_clicks);
+                    play_click(&sfx_clicks, PlaySoundParams { looped: false, volume: vol_click });
                     c.make_ascii_lowercase();
                     buffer[buff_idx_y][buff_idx_x].0 = c;
                     buff_idx_x += 1;
@@ -227,7 +259,7 @@ async fn main() {
         if is_key_pressed(KeyCode::Backspace) && buff_idx_x > 0 && !in_animation {
             println!("Log: Backspace pressed");
             if !game_over {
-                play_click(&sfx_clicks);
+                play_click(&sfx_clicks, PlaySoundParams { looped: false, volume: vol_click });
                 info_text.clear();
                 buff_idx_x -= 1;
                 buffer[buff_idx_y][buff_idx_x].0 = '_';
@@ -238,7 +270,7 @@ async fn main() {
             println!("Log: Enter pressed");
             // Not big enough
             if buff_idx_x < 5 && !game_over {
-                play_sound(&sfx_buzz, PlaySoundParams { looped: false, volume: VOL_BUZZ });
+                play_sound(&sfx_buzz, PlaySoundParams { looped: false, volume: vol_buzz });
                 info_text = "Not enough letters".to_string();
                 eprintln!("Not enough letters");
             }
@@ -251,7 +283,7 @@ async fn main() {
                 let current_word: &str = tmp_word.as_str();
 
                 if !dict.contains(current_word) {
-                    play_sound(&sfx_buzz, PlaySoundParams { looped: false, volume: VOL_BUZZ });
+                    play_sound(&sfx_buzz, PlaySoundParams { looped: false, volume: vol_buzz });
                     info_text = format!("Word not in wordlist: {current_word}").to_string();
                     eprintln!("Word not in wordlist: {current_word}");
                 }
@@ -322,12 +354,12 @@ async fn main() {
 
         if game_over && !in_animation && !result_printed {
             if game_won {
-                play_sound(&sfx_win, PlaySoundParams { looped: false, volume: VOL_WIN });
+                play_sound(&sfx_win, PlaySoundParams { looped: false, volume: vol_win });
                 info_text = "Game won. Congratulations!".to_string();
                 println!("Won game");
             }
             else {
-                play_sound(&sfx_lose, PlaySoundParams { looped: false, volume: VOL_LOSE });
+                play_sound(&sfx_lose, PlaySoundParams { looped: false, volume: vol_lose });
                 info_text = format!("You lost! The word was {word_to_find}").to_string();
                 println!("You lost. The word was {}", word_to_find);
             }
@@ -338,29 +370,29 @@ async fn main() {
         if in_animation {
             let time: f64 = get_time() - reveal_start.unwrap();
             if time > 0.0 && time < DELAY && played == 0 {
-                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: VOL_POP });
+                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: vol_pop });
                 played += 1;
             }
             if time > DELAY && time < DELAY * 2.0 && played == 1 {
-                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: VOL_POP });
+                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: vol_pop });
                 played += 1;
             }
             if time > DELAY * 2.0 && time < DELAY * 3.0 && played == 2 {
-                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: VOL_POP });
+                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: vol_pop });
                 played += 1;
             }
             if time > DELAY * 3.0 && time < DELAY * 4.0 && played == 3 {
-                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: VOL_POP });
+                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: vol_pop });
                 played += 1;
             }
             if time > DELAY * 4.0 && time < DELAY * 5.0 && played == 4 {
-                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: VOL_POP });
+                play_sound(&sfx_pop, PlaySoundParams { looped: false, volume: vol_pop });
                 played = 0;
             }
         }
 
         if is_key_pressed(KeyCode::Escape) {
-			play_sound(&sfx_secret, PlaySoundParams { looped: false, volume: VOL_DUCK});
+			play_sound(&sfx_secret, PlaySoundParams { looped: false, volume: vol_duck });
             println!("Log: Escape pressed");
             if !game_over {
                 info_text = "There is no escape!".to_string();
